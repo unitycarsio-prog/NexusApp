@@ -78,10 +78,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, onSearch, activePage
                     {user.avatarUrl && (
                         <img src={user.avatarUrl} alt={user.name} className="w-9 h-9 rounded-full shadow-sm border border-slate-200" />
                     )}
-                    <div className="flex flex-col items-end hidden sm:flex">
+                    <div className="flex flex-col items-start hidden sm:flex">
                         <span className="text-sm font-bold text-slate-800 leading-none">{user.name}</span>
                         <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{user.role}</span>
                     </div>
+                     <button
+                        onClick={() => onNavigate('PROFILE')}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="My Profile"
+                     >
+                        <UserCircle size={20} />
+                     </button>
                      <button 
                         onClick={onLogout}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"

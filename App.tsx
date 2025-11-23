@@ -7,6 +7,7 @@ import { AppCard } from './components/AppCard';
 import { AppDetails } from './components/AppDetails';
 import { PublishApp } from './components/PublishApp';
 import { Auth } from './components/Auth';
+import { Profile } from './components/Profile';
 import { semanticSearchApps } from './services/geminiService';
 import { Loader2, Plus } from 'lucide-react';
 
@@ -24,7 +25,7 @@ const App: React.FC = () => {
 
   // Handle navigation
   const navigateTo = (page: ViewState) => {
-    if (page === 'PUBLISH' && !user) {
+    if ((page === 'PUBLISH' || page === 'PROFILE') && !user) {
         setView('AUTH');
         return;
     }
@@ -41,6 +42,29 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setUser(null);
     setView('HOME');
+  };
+  
+  // Handle User Profile Update
+  const handleUpdateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    
+    // Update user in localStorage as well
+    try {
+        const stored = localStorage.getItem('nexus_users');
+        const users = stored ? JSON.parse(stored) : [];
+        const userIndex = users.findIndex((u: any) => u.id === updatedUser.id);
+        
+        if (userIndex !== -1) {
+            // Update the specific user's details (don't touch password)
+            users[userIndex].username = updatedUser.name;
+            users[userIndex].avatarUrl = updatedUser.avatarUrl;
+            localStorage.setItem('nexus_users', JSON.stringify(users));
+        }
+    } catch (e) {
+        console.error("Failed to update user in localStorage", e);
+    }
+    
+    navigateTo('HOME');
   };
 
   // Handle app selection
@@ -158,6 +182,14 @@ const App: React.FC = () => {
 
         {view === 'AUTH' && (
             <Auth onLogin={handleLogin} />
+        )}
+        
+        {view === 'PROFILE' && user && (
+            <Profile 
+                user={user} 
+                onUpdate={handleUpdateUser} 
+                onCancel={() => navigateTo('HOME')} 
+            />
         )}
 
         {view === 'SEARCH_RESULTS' && (

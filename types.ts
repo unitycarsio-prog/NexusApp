@@ -27,7 +27,7 @@ export interface Review {
 }
 
 export interface AppItem {
-  id: string;
+  id:string;
   name: string;
   developer: string;
   developerId: string;
@@ -45,4 +45,4 @@ export interface AppItem {
   reviews: Review[];
 }
 
-export type ViewState = 'HOME' | 'DETAILS' | 'PUBLISH' | 'SEARCH_RESULTS' | 'AUTH';
+export type ViewState = 'HOME' | 'DETAILS' | 'PUBLISH' | 'SEARCH_RESULTS' | 'AUTH' | 'PROFILE';

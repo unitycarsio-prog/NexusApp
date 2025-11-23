@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
 import { LayoutGrid, Check, User as UserIcon, Loader2, AlertCircle, Lock, RefreshCw } from 'lucide-react';
 
@@ -6,7 +6,14 @@ interface AuthProps {
   onLogin: (user: User) => void;
 }
 
-const generateRandomColor = () => Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+// DiceBear avatar styles for variety
+const avatarStyles = ['adventurer', 'bottts', 'pixel-art', 'miniavs', 'lorelei', 'notionists-neutral', 'fun-emoji'];
+
+const generateAvatarUrl = () => {
+    const style = avatarStyles[Math.floor(Math.random() * avatarStyles.length)];
+    const seed = crypto.randomUUID();
+    return `https://api.dicebear.com/8.x/${style}/svg?seed=${seed}`;
+};
 
 export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,10 +24,29 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     username: '',
     password: ''
   });
-  const [avatarBg, setAvatarBg] = useState(generateRandomColor());
+  
+  // Avatar State
+  const [avatarOptions, setAvatarOptions] = useState<string[]>([]);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const generateAndSetAvatars = () => {
+    const options = Array.from({ length: 6 }, generateAvatarUrl);
+    setAvatarOptions(options);
+    if (!selectedAvatar || !options.includes(selectedAvatar)) {
+        setSelectedAvatar(options[0]);
+    }
+  };
+  
+  // Generate avatars when switching to signup view
+  useEffect(() => {
+    if (!isLogin) {
+        generateAndSetAvatars();
+    }
+  }, [isLogin]);
+
 
   // Helper to simulate database access
   const getStoredUsers = () => {
@@ -48,11 +74,12 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     const users = getStoredUsers();
     const normalizedUsername = formData.username.trim().toLowerCase();
+    const trimmedInput = formData.username.trim();
 
     if (isLogin) {
       // LOGIN LOGIC
       const userFound = users.find((u: any) => 
-        u.username.toLowerCase() === normalizedUsername && u.password === formData.password
+        (u.username.toLowerCase() === normalizedUsername || u.id === trimmedInput) && u.password === formData.password
       );
 
       if (userFound) {
@@ -61,11 +88,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           id: userFound.id,
           name: userFound.username, // Using username as display name
           role: userFound.role,
-          avatarUrl: userFound.avatarUrl || `https://ui-avatars.com/api/?name=${userFound.username}&background=0D8ABC&color=fff`
+          avatarUrl: userFound.avatarUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${userFound.username}`
         };
         onLogin(sessionUser);
       } else {
-        setError('Invalid username or password.');
+        setError('Invalid credentials. Please try again.');
       }
     } else {
       // SIGNUP LOGIC
@@ -89,15 +116,13 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         return;
       }
 
-      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.username.trim())}&background=${avatarBg}&color=fff&bold=true`;
-
       // Create new user record
       const newUserCreds = {
         id: crypto.randomUUID(), // Use a cryptographically secure UID
         username: formData.username.trim(), // Keep original case for display
         password: formData.password,
         role: role,
-        avatarUrl: avatarUrl
+        avatarUrl: selectedAvatar
       };
 
       saveUserToStorage(newUserCreds);
@@ -154,35 +179,40 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           <form className="space-y-6" onSubmit={handleAuth}>
             
             {!isLogin && (
-                <div className="flex flex-col items-center justify-center space-y-3">
-                    <div className="relative">
-                        <img 
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.username) || '?'}&background=${avatarBg}&color=fff&size=96&bold=true`}
-                            alt="Avatar Preview"
-                            className="w-24 h-24 rounded-full shadow-md border-4 border-white"
-                        />
+                <div>
+                    <div className="flex justify-between items-center mb-2">
+                        <label className="text-sm font-medium text-slate-700">Choose your avatar</label>
                         <button 
-                            type="button"
-                            onClick={() => setAvatarBg(generateRandomColor())}
-                            className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-full shadow-md border hover:bg-slate-100 transition-colors"
-                            title="Randomize Color"
+                            type="button" 
+                            onClick={generateAndSetAvatars}
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
                         >
-                            <RefreshCw size={14} className="text-slate-600" />
+                            <RefreshCw size={12}/> Get New Avatars
                         </button>
                     </div>
-                    <p className="text-xs text-slate-400">Your generated avatar</p>
+                    <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg border">
+                        {avatarOptions.map(url => (
+                            <img
+                                key={url}
+                                src={url}
+                                alt="Avatar option"
+                                onClick={() => setSelectedAvatar(url)}
+                                className={`w-full aspect-square rounded-full cursor-pointer transition-all duration-200 ${selectedAvatar === url ? 'ring-2 ring-blue-500 ring-offset-2 scale-105' : 'hover:scale-105'}`}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
             
             <div>
-              <label className="block text-sm font-medium text-slate-700">Username</label>
+              <label className="block text-sm font-medium text-slate-700">{isLogin ? 'Username or UID' : 'Username'}</label>
               <div className="mt-1 relative">
                 <input
                   type="text"
                   required
                   autoComplete="username"
                   className="appearance-none block w-full px-3 py-2 pl-10 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                  placeholder="Choose a unique username"
+                  placeholder={isLogin ? 'Enter username or UID' : 'Choose a unique username'}
                   value={formData.username}
                   onChange={e => setFormData({...formData, username: e.target.value})}
                 />
