@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
-import { LayoutGrid, Check, User as UserIcon, Loader2, AlertCircle, Lock } from 'lucide-react';
+import { LayoutGrid, Check, User as UserIcon, Loader2, AlertCircle, Lock, RefreshCw } from 'lucide-react';
 
 interface AuthProps {
   onLogin: (user: User) => void;
 }
+
+const generateRandomColor = () => Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
 
 export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,6 +17,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     username: '',
     password: ''
   });
+  const [avatarBg, setAvatarBg] = useState(generateRandomColor());
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,7 +61,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           id: userFound.id,
           name: userFound.username, // Using username as display name
           role: userFound.role,
-          avatarUrl: `https://ui-avatars.com/api/?name=${userFound.username}&background=0D8ABC&color=fff`
+          avatarUrl: userFound.avatarUrl || `https://ui-avatars.com/api/?name=${userFound.username}&background=0D8ABC&color=fff`
         };
         onLogin(sessionUser);
       } else {
@@ -78,7 +81,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         return;
       }
 
-      // Check for duplicates
+      // Check for duplicates (case-insensitive)
       const exists = users.some((u: any) => u.username.toLowerCase() === normalizedUsername);
       if (exists) {
         setError('This username is already taken. Please choose another.');
@@ -86,12 +89,15 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         return;
       }
 
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.username.trim())}&background=${avatarBg}&color=fff&bold=true`;
+
       // Create new user record
       const newUserCreds = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(), // Use a cryptographically secure UID
         username: formData.username.trim(), // Keep original case for display
         password: formData.password,
-        role: role
+        role: role,
+        avatarUrl: avatarUrl
       };
 
       saveUserToStorage(newUserCreds);
@@ -100,7 +106,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         id: newUserCreds.id,
         name: newUserCreds.username,
         role: newUserCreds.role,
-        avatarUrl: `https://ui-avatars.com/api/?name=${newUserCreds.username}&background=0D8ABC&color=fff`
+        avatarUrl: newUserCreds.avatarUrl
       };
       
       onLogin(sessionUser);
@@ -146,6 +152,27 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           )}
 
           <form className="space-y-6" onSubmit={handleAuth}>
+            
+            {!isLogin && (
+                <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="relative">
+                        <img 
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.username) || '?'}&background=${avatarBg}&color=fff&size=96&bold=true`}
+                            alt="Avatar Preview"
+                            className="w-24 h-24 rounded-full shadow-md border-4 border-white"
+                        />
+                        <button 
+                            type="button"
+                            onClick={() => setAvatarBg(generateRandomColor())}
+                            className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-full shadow-md border hover:bg-slate-100 transition-colors"
+                            title="Randomize Color"
+                        >
+                            <RefreshCw size={14} className="text-slate-600" />
+                        </button>
+                    </div>
+                    <p className="text-xs text-slate-400">Your generated avatar</p>
+                </div>
+            )}
             
             <div>
               <label className="block text-sm font-medium text-slate-700">Username</label>

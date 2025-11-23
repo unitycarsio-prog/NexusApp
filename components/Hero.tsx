@@ -16,7 +16,7 @@ export const Hero: React.FC = () => {
             New Feature
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
-            Discover Apps with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">NexusApp</span>
+            Discover Apps with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">NexusStore</span>
           </h1>
           <p className="text-lg text-slate-300 mb-8 leading-relaxed">
             Experience the future of app discovery. Use natural language to find exactly what you need, or let our AI curate collections just for you.

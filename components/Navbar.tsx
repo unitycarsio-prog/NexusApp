@@ -33,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, onSearch, activePage
               <LayoutGrid size={24} />
             </div>
             <span className="ml-3 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
-              NexusApp
+              NexusStore
             </span>
           </div>
 
@@ -75,6 +75,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, onSearch, activePage
 
             {user ? (
                 <div className="flex items-center ml-2 border-l border-slate-200 pl-4 space-x-3">
+                    {user.avatarUrl && (
+                        <img src={user.avatarUrl} alt={user.name} className="w-9 h-9 rounded-full shadow-sm border border-slate-200" />
+                    )}
                     <div className="flex flex-col items-end hidden sm:flex">
                         <span className="text-sm font-bold text-slate-800 leading-none">{user.name}</span>
                         <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{user.role}</span>

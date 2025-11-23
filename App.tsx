@@ -128,7 +128,7 @@ const App: React.FC = () => {
             
             {apps.length === 0 ? (
                 <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-                    <h2 className="text-3xl font-bold text-slate-800 mb-4">Welcome to Nexus App Store</h2>
+                    <h2 className="text-3xl font-bold text-slate-800 mb-4">Welcome to NexusStore</h2>
                     <p className="text-slate-500 mb-8 max-w-xl mx-auto">The store is currently empty. Be the first developer to publish an app and share it with the world!</p>
                     {user?.role === 'DEVELOPER' ? (
                         <button 
